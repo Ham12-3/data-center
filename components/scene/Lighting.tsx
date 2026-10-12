@@ -70,11 +70,11 @@ export function Lighting({ intensity = 1 }: { intensity?: number }): ReactNode {
   const level = useStore((s) => s.qualityLevel);
   const get = useThree((s) => s.get);
 
-  // Shadow map resolution follows quality: 4096² (High/Balanced) or 2048² (Low).
+  // Shadow map resolution follows quality: 4096² (High) or 2048² (Balanced / Low).
   useEffect(() => {
     const light = sun.current;
     if (!light) return;
-    const size = level === "low" ? 2048 : 4096;
+    const size = level === "high" ? 4096 : 2048;
     if (light.shadow.mapSize.x === size) return;
     light.shadow.mapSize.set(size, size);
     light.shadow.map?.dispose();

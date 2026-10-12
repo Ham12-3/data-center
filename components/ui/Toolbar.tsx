@@ -91,12 +91,11 @@ function SoundToggle() {
   );
 }
 
-const QUALITY_LABEL: Record<QualitySetting, string> = { auto: "Auto", high: "High", balanced: "Balanced", low: "Low" };
+const QUALITY_LABEL: Record<QualitySetting, string> = { high: "High", balanced: "Balanced", low: "Low" };
 
-/** Rendering quality; Auto adapts to the measured frame rate. */
+/** Rendering quality: a fixed level, changed only by the user. */
 function QualitySelect() {
   const quality = useStore((s) => s.quality);
-  const level = useStore((s) => s.qualityLevel);
   const setQuality = useStore((s) => s.setQuality);
   return (
     <label className="flex items-center gap-1.5 text-xs text-slate-400" title="High: ambient occlusion + full post-processing. Balanced: no AO. Low: no post-processing, smaller shadows, no grass tufts.">
@@ -108,7 +107,7 @@ function QualitySelect() {
       >
         {(Object.keys(QUALITY_LABEL) as QualitySetting[]).map((q) => (
           <option key={q} value={q} className="bg-slate-900">
-            {q === "auto" ? `Auto (${QUALITY_LABEL[level]})` : QUALITY_LABEL[q]}
+            {QUALITY_LABEL[q]}
           </option>
         ))}
       </select>

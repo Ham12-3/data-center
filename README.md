@@ -39,9 +39,9 @@ npx tsc --noEmit  # strict type check
 - **Sound (toolbar):** synthesised ambience that follows where you are and what's happening: data-hall fan noise rising with load, electrical hum, cooling-plant drone, wind outside, generators cranking and running, the fire sounder, UPS beeps and BMS chimes. It is generated with the Web Audio API, so there are no audio files. Off by default.
 - **Quality (toolbar):**
   - **High:** ambient occlusion and full post-processing.
-  - **Balanced:** no ambient occlusion.
+  - **Balanced (default):** no ambient occlusion, 2048² shadows, 1× resolution.
   - **Low:** no post-processing, 2048² shadows, no grass tufts, 1× resolution.
-  - **Auto:** steps between them from the measured frame rate.
+  - **Default: Balanced.** The level is fixed and only changes when you pick another one. There is deliberately no automatic switching: changing level rebuilds the post-processing chain, and doing that on the fly from the frame rate made the view flash black.
 - **Debug panel (top, dev only):** exposure, light, LED brightness, bloom, ambient occlusion, a post-processing bypass and an FPS counter.
 
 ## Simulations

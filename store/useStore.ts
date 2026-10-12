@@ -7,10 +7,12 @@ import { type ScenarioId, scenarioById } from "@/lib/sim/scenarios";
 
 export type CameraMode = "orbit" | "walk" | "tour";
 
-/** Rendering quality. "auto" follows the measured frame rate. */
-export type QualitySetting = "auto" | "high" | "balanced" | "low";
-export type QualityLevel = Exclude<QualitySetting, "auto">;
-export const QUALITY_ORDER: readonly QualityLevel[] = ["low", "balanced", "high"];
+/**
+ * Rendering quality. Fixed, chosen by the user: switching levels on the fly
+ * from the frame rate rebuilt the post-processing chain and flashed black.
+ */
+export type QualitySetting = "high" | "balanced" | "low";
+export type QualityLevel = QualitySetting;
 
 export interface LayerVisibility {
   cables: boolean;
@@ -88,7 +90,7 @@ interface AppState {
   /** Walk mode: the mouse is captured for looking around. */
   walkLocked: boolean;
   quality: QualitySetting;
-  /** Level actually in use (equals `quality` unless that is "auto"). */
+  /** Level in use (always equal to `quality`; kept as the name renderers read). */
   qualityLevel: QualityLevel;
   soundOn: boolean;
   /** Loading progress, for the loading screen. */
@@ -118,8 +120,6 @@ interface AppState {
   exitTour: () => void;
   setWalkLocked: (locked: boolean) => void;
   setQuality: (q: QualitySetting) => void;
-  /** Auto mode: step quality up (+1) or down (-1) in response to frame rate. */
-  stepQuality: (dir: 1 | -1) => void;
   setSoundOn: (on: boolean) => void;
   setLoadStage: (stage: AppState["loadStage"]) => void;
 }
@@ -159,8 +159,8 @@ export const useStore = create<AppState>()((set) => ({
   trayService: null,
   tour: { index: 0, playing: true },
   walkLocked: false,
-  quality: "auto",
-  qualityLevel: "high",
+  quality: "balanced",
+  qualityLevel: "balanced",
   soundOn: false,
   loadStage: "engine",
 
@@ -218,13 +218,7 @@ export const useStore = create<AppState>()((set) => ({
   setTourPlaying: (playing) => set((s) => ({ tour: { ...s.tour, playing } })),
   exitTour: () => set({ cameraMode: "orbit", selected: null }),
   setWalkLocked: (walkLocked) => set({ walkLocked }),
-  setQuality: (quality) => set((s) => ({ quality, qualityLevel: quality === "auto" ? s.qualityLevel : quality })),
-  stepQuality: (dir) =>
-    set((s) => {
-      if (s.quality !== "auto") return {};
-      const i = QUALITY_ORDER.indexOf(s.qualityLevel);
-      return { qualityLevel: QUALITY_ORDER[Math.max(0, Math.min(QUALITY_ORDER.length - 1, i + dir))] };
-    }),
+  setQuality: (quality) => set({ quality, qualityLevel: quality }),
   setSoundOn: (soundOn) => set({ soundOn }),
   setLoadStage: (loadStage) => set({ loadStage }),
 }));

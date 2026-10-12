@@ -1,6 +1,6 @@
 "use client";
 
-import { PerformanceMonitor, Stats } from "@react-three/drei";
+import { Stats } from "@react-three/drei";
 import { Canvas, events as defaultEvents, useThree } from "@react-three/fiber";
 import {
   Bloom,
@@ -156,6 +156,8 @@ function PostFx({ bloom, ao }: { bloom: boolean; ao: boolean }): ReactNode {
     <EffectComposer multisampling={0} autoClear={false}>
       {/* AO radius is in world units: ~1 m inside rooms, a few metres for aerial views. Off below High. */}
       <N8AO
+        // Disabled (not just zero intensity) below High, so its passes don't run at all.
+        enabled={ao && level === "high"}
         halfRes
         aoSamples={16}
         denoiseSamples={4}
@@ -195,16 +197,15 @@ export default function Scene(): ReactNode {
   });
   const select = useStore((s) => s.select);
   const start = ZONES[0].shot;
-  // Resolution follows the quality level; Auto steps the level with the measured frame rate.
+  // Resolution follows the (fixed, user-chosen) quality level.
   const level = useStore((s) => s.qualityLevel);
-  const stepQuality = useStore((s) => s.stepQuality);
   const setLoadStage = useStore((s) => s.setLoadStage);
-  const ready = useStore((s) => s.loadStage === "ready");
   // This module has downloaded and the canvas exists: next, assets load inside Suspense.
   useEffect(() => {
     if (useStore.getState().loadStage === "engine") setLoadStage("assets");
   }, [setLoadStage]);
-  const dpr = level === "high" ? 1.5 : level === "balanced" ? 1.25 : 1;
+  // Balanced renders at 1× (CSS pixels): far less GPU work on high-DPI screens; SMAA keeps edges clean.
+  const dpr = level === "high" ? 1.5 : 1;
 
   return (
     <Canvas
@@ -221,9 +222,6 @@ export default function Scene(): ReactNode {
       // Hidden (but still mounted) interiors must not catch clicks or hovers.
       events={(store) => ({ ...defaultEvents(store), filter: (items) => items.filter((i) => visibleChain(i.object)) })}
     >
-      {/* Below ~45 fps step quality down, above ~58 step it back up; settle after a few flip-flops.
-          Only measured once loading (and its shader-compile spikes) is over. */}
-      {ready && <PerformanceMonitor bounds={() => [45, 58]} flipflops={4} onIncline={() => stepQuality(1)} onDecline={() => stepQuality(-1)} />}
       {stats && <Stats />}
       <SimDriver />
       <RenderSettings exposure={exposure} ledBrightness={ledBrightness} />
